@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filler Forge — Layout-Accurate Placeholder Text</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800;900&display=swap');
+
+[data-theme="dark"] {
+  --bg:#0c0c0e; --card:#131316; --card2:#1a1a1f; --card3:#202026;
+  --border:#2a2a33; --border2:#35353f;
+  --accent:#b8f050; --accent-h:#ccff66; --accent-dim:rgba(184,240,80,0.1);
+  --blue:#50c8f0; --blue-dim:rgba(80,200,240,0.1);
+  --pink:#f050c8; --pink-dim:rgba(240,80,200,0.1);
+  --danger:#f05858; --danger-dim:rgba(240,88,88,0.1);
+  --text:#d4d4e0; --text2:#7a7a90; --muted:#42424f;
+  --logo:#b8f050; --shadow:rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] {
+  --bg:#eeebe3; --card:#f7f4ee; --card2:#ede9e1; --card3:#e4dfd5;
+  --border:#d0ccc2; --border2:#bebab0;
+  --accent:#2d6a4f; --accent-h:#1e5c3d; --accent-dim:rgba(45,106,79,0.1);
+  --blue:#1a6b5a; --blue-dim:rgba(26,107,90,0.1);
+  --pink:#6a2d5a; --pink-dim:rgba(106,45,90,0.1);
+  --danger:#b84040; --danger-dim:rgba(184,64,64,0.08);
+  --text:#1a1a16; --text2:#5a5750; --muted:#9a9590;
+  --logo:#2d6a4f; --shadow:rgba(0,0,0,0.08);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;}
+
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;transition:background .25s,color .25s;}
+
+/* HEADER */
+header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:900;font-size:26px;letter-spacing:-1px;color:var(--logo);line-height:1;}
+.tagline{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-left:14px;}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+
+.api-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text2);cursor:pointer;padding:8px 14px;border-radius:30px;border:1px solid var(--border);background:var(--card);transition:all .15s;user-select:none;}
+.api-pill:hover{border-color:var(--accent);color:var(--accent);}
+.api-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .3s,box-shadow .3s;}
+.api-dot.on{background:var(--accent);box-shadow:0 0 7px var(--accent);}
+.api-dot.err{background:var(--danger);}
+
+.theme-btn{font-size:16px;background:var(--card);border:1px solid var(--border);border-radius:30px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:all .15s;}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* API DRAWER */
+.api-drawer{overflow:hidden;max-height:0;transition:max-height .3s ease;margin:0 20px;}
+.api-drawer.open{max-height:120px;margin-bottom:12px;}
+.api-drawer-inner{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.api-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.api-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);white-space:nowrap;}
+.api-input{flex:1;min-width:220px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:9px 14px;outline:none;transition:border-color .15s;}
+.api-input:focus{border-color:var(--accent);}
+.api-input::placeholder{color:var(--muted);}
+.btn-xs{font-family:'DM Mono',monospace;font-size:11px;padding:8px 16px;border-radius:8px;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--text2);white-space:nowrap;transition:all .15s;}
+.btn-xs:hover{border-color:var(--accent);color:var(--accent);}
+.btn-xs.go{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700;}
+.btn-xs.go:hover{background:var(--accent-h);}
+.api-hint{font-size:11px;color:var(--muted);line-height:1.5;}
+.api-hint a{color:var(--accent);text-decoration:none;}
+.api-hint a:hover{text-decoration:underline;}
+
+/* PII */
+.pii-bar{display:none;margin:0 20px 10px;padding:10px 18px;background:var(--danger-dim);border:1px solid var(--danger);border-radius:10px;font-size:12px;color:var(--danger);gap:8px;align-items:center;}
+.pii-bar.on{display:flex;}
+
+/* BENTO */
+.bento{display:flex;flex-direction:column;gap:10px;padding:0 20px 20px;flex:1;min-height:0;}
+
+/* TOP ROW */
+.top-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+
+.ctrl-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;gap:10px;}
+
+.ctrl-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px;}
+
+/* TOOLTIP */
+.tip-wrap{position:relative;display:inline-flex;}
+.tip-icon{width:15px;height:15px;border-radius:50%;border:1px solid var(--border2);display:inline-flex;align-items:center;justify-content:center;font-size:9px;cursor:help;color:var(--text2);flex-shrink:0;}
+.tip-wrap:hover .tip-box{opacity:1;pointer-events:auto;transform:translateY(0);}
+.tip-box{position:absolute;left:20px;top:-4px;width:210px;background:var(--card3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;line-height:1.65;color:var(--text2);opacity:0;pointer-events:none;transform:translateY(6px);transition:all .15s;z-index:400;box-shadow:0 12px 32px var(--shadow);}
+
+/* PILLS */
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;}
+.pill{font-family:'DM Mono',monospace;font-size:11px;padding:6px 12px;border:1px solid var(--border2);background:transparent;color:var(--muted);border-radius:30px;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.pill:hover{border-color:var(--text2);color:var(--text);}
+.pill.a0{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.pill.a1{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+.pill.a2{border-color:var(--pink);color:var(--pink);background:var(--pink-dim);}
+.pill.locked{opacity:.3;cursor:not-allowed;border-style:dashed;}
+.pill.locked:hover{border-color:var(--border2);color:var(--muted);background:transparent;}
+
+.mode-pill{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border:1.5px solid var(--border2);background:transparent;color:var(--muted);border-radius:30px;cursor:pointer;transition:all .12s;white-space:nowrap;}
+.mode-pill:hover{border-color:var(--text2);color:var(--text);}
+.mode-pill.a0{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.mode-pill.a1{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+.mode-pill.a2{border-color:var(--pink);color:var(--pink);background:var(--pink-dim);}
+.mode-pill.locked{opacity:.3;cursor:not-allowed;border-style:dashed;}
+.mode-pill.locked:hover{border-color:var(--border2);color:var(--muted);background:transparent;}
+
+.unlock-nudge{display:none;font-size:11px;color:var(--accent);cursor:pointer;margin-top:2px;text-decoration:underline;text-underline-offset:3px;}
+.unlock-nudge.on{display:block;}
+
+.opt-lbl{font-size:10px;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+
+/* SEMANTIC */
+.sem-explainer{font-size:10px;color:var(--text2);line-height:1.55;}
+.sem-patterns{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.sem-pat{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--card2);border:1px solid var(--border);color:var(--text2);font-family:'DM Mono',monospace;}
+.sem-pat.hi{background:var(--pink-dim);border-color:var(--pink);color:var(--pink);}
+
+/* MID ROW */
+.mid-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:400px;}
+
+.bc{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;}
+
+.panel-hdr{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--card);}
+.panel-lbl{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.stats{font-size:11px;color:var(--text2);display:flex;gap:16px;}
+.sv{color:var(--accent);font-weight:500;}
+
+textarea{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.9;padding:20px;resize:none;width:100%;min-height:0;}
+textarea::placeholder{color:var(--muted);font-style:italic;line-height:1.9;}
+
+.gen-bar{padding:14px 20px;display:flex;gap:12px;align-items:center;border-top:1px solid var(--border);background:var(--card2);flex-shrink:0;}
+
+.btn-gen{font-family:'Syne',sans-serif;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:12px 28px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;cursor:pointer;transition:all .15s;flex-shrink:0;}
+.btn-gen:hover{background:var(--accent-h);transform:translateY(-1px);box-shadow:0 6px 20px var(--shadow);}
+.btn-gen:active{transform:none;box-shadow:none;}
+.btn-gen:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.status-txt{font-size:11px;color:var(--muted);font-style:italic;}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .5s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* OUTPUT */
+.out-scroll{flex:1;overflow-y:auto;min-height:0;}
+.out-content{padding:20px;font-size:14px;line-height:1.9;white-space:pre-wrap;word-break:break-word;color:var(--text);font-family:'DM Mono',monospace;}
+.out-content.empty{color:var(--muted);font-style:italic;}
+.out-rtl{direction:rtl;text-align:right;}
+
+.out-para{position:relative;padding:3px 10px;margin:0 -10px;border-radius:6px;transition:background .1s;}
+.out-para:hover{background:var(--card2);}
+.regen-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--border2);background:var(--card3);color:var(--muted);border-radius:4px;cursor:pointer;opacity:0;transition:opacity .1s,color .1s,border-color .1s;white-space:nowrap;}
+.out-para:hover .regen-btn{opacity:1;}
+.regen-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+.det-bar{padding:8px 20px;border-top:1px solid var(--border);display:none;flex-wrap:wrap;gap:5px;align-items:center;flex-shrink:0;}
+.det-bar.on{display:flex;}
+.det-lbl{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-right:4px;}
+.dtag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--pink-dim);color:var(--pink);border:1px solid var(--pink);}
+
+.out-actions{padding:13px 20px;display:flex;gap:8px;align-items:center;border-top:1px solid var(--border);background:var(--card2);flex-shrink:0;flex-wrap:wrap;}
+.btn-act{font-family:'DM Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:8px;cursor:pointer;transition:all .12s;}
+.btn-act:hover{border-color:var(--blue);color:var(--blue);}
+.btn-act.ok{border-color:var(--accent);color:var(--accent);}
+
+.mbadge{font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;font-family:'Syne',sans-serif;}
+.mb0{background:var(--accent-dim);color:var(--accent);}
+.mb1{background:var(--blue-dim);color:var(--blue);}
+.mb2{background:var(--pink-dim);color:var(--pink);}
+
+/* BOT ROW */
+.bot-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.bot-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+.bot-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.h-list{display:flex;flex-direction:column;gap:6px;}
+.h-item{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .12s;line-height:1.5;}
+.h-item:hover{border-color:var(--blue);color:var(--text);}
+.h-meta{font-size:10px;color:var(--muted);margin-bottom:3px;display:flex;justify-content:space-between;}
+.h-empty{font-size:11px;color:var(--muted);font-style:italic;}
+.about-text{font-size:12px;color:var(--text2);line-height:1.7;}
+.about-text strong{color:var(--text);}
+.kofi-card{align-items:center;text-align:center;justify-content:center;}
+.kofi-emoji{font-size:34px;line-height:1;}
+.kofi-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.3px;}
+.kofi-sub{font-size:11px;color:var(--text2);line-height:1.5;}
+.kofi-btn{display:inline-block;margin-top:4px;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:11px 22px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;cursor:pointer;text-decoration:none;transition:all .15s;}
+.kofi-btn:hover{background:var(--accent-h);transform:translateY(-1px);}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.top-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:860px){.mid-row{grid-template-columns:1fr;}.bot-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){html{font-size:14px;}header{padding:12px 14px;}.bento{padding:0 14px 14px;gap:8px;}.top-row,.bot-row{grid-template-columns:1fr;}.logo{font-size:20px;}.tagline{display:none;}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp .2s ease forwards;}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+    <div class="logo">FILLER FORGE</div>
+    <span class="tagline">Layout-accurate placeholder text</span>
+  </div>
+  <div class="hdr-right">
+    <div class="api-pill" onclick="toggleDrawer()">
+      <div class="api-dot" id="api-dot"></div>
+      <span id="api-status-txt">API Key</span>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☾</button>
+  </div>
+</header>
+
+<div class="api-drawer" id="api-drawer">
+  <div class="api-drawer-inner">
+    <div class="api-row">
+      <span class="api-lbl">API Key</span>
+      <input class="api-input" type="password" id="api-input" placeholder="Paste your Gemini API key..."/>
+      <button class="btn-xs go" onclick="saveKey()">Connect</button>
+      <button class="btn-xs" onclick="clearKey()">Clear</button>
+    </div>
+    <div class="api-hint">Free key at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> — 60 seconds to get, saved in your browser only, never shared. All other modes work without a key.</div>
+  </div>
+</div>
+
+<div class="pii-bar" id="pii-bar">⚠ <span id="pii-txt"></span></div>
+
+<div class="bento">
+
+  <div class="top-row">
+
+    <div class="ctrl-card">
+      <div class="ctrl-title">Mode <div class="tip-wrap"><span class="tip-icon">?</span><div class="tip-box">Basic swaps words by length. Structure also preserves capitalization patterns. Semantic uses AI to understand what your content actually is — requires a free API key.</div></div></div>
+      <div class="pill-row">
+        <button class="mode-pill a0" data-g="mode" data-v="basic" onclick="setPill(this,'mode','basic','a0')">Basic</button>
+        <button class="mode-pill" data-g="mode" data-v="structure" onclick="setPill(this,'mode','structure','a1')">Structure</button>
+        <button class="mode-pill" id="pill-semantic" data-g="mode" data-v="semantic" onclick="setPillSemantic(this)">Semantic ✦</button>
+      </div>
+      <div class="unlock-nudge" id="unlock-nudge" onclick="toggleDrawer()">↑ Add API key to unlock Semantic</div>
+    </div>
+
+    <div class="ctrl-card">
+      <div class="ctrl-title">Language <div class="tip-wrap"><span class="tip-icon">?</span><div class="tip-box">Generate filler in another language. Arabic auto-flips to right-to-left. Asian languages use character-aware replacement that respects script structure.</div></div></div>
+      <div class="pill-row">
+        <button class="pill a0" data-g="lang" data-v="en" onclick="setPill(this,'lang','en','a0')">English</button>
+        <button class="pill" data-g="lang" data-v="es" onclick="setPill(this,'lang','es','a0')">Spanish</button>
+        <button class="pill" data-g="lang" data-v="pt" onclick="setPill(this,'lang','pt','a0')">Portuguese</button>
+        <button class="pill" data-g="lang" data-v="ko" onclick="setPill(this,'lang','ko','a0')">Korean</button>
+        <button class="pill" data-g="lang" data-v="ja" onclick="setPill(this,'lang','ja','a0')">Japanese</button>
+        <button class="pill" data-g="lang" data-v="ar" onclick="setPill(this,'lang','ar','a0')">Arabic ↔</button>
+        <button class="pill" data-g="lang" data-v="fr" onclick="setPill(this,'lang','fr','a0')">French</button>
+        <button class="pill" data-g="lang" data-v="de" onclick="setPill(this,'lang','de','a0')">German</button>
+        <button class="pill" data-g="lang" data-v="zh" onclick="setPill(this,'lang','zh','a0')">Chinese</button>
+      </div>
+    </div>
+
+    <div class="ctrl-card">
+      <div class="ctrl-title">Options</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div class="opt-lbl">Language Style <div class="tip-wrap"><span class="tip-icon">?</span><div class="tip-box">Authentic uses real words from the language. Phonetic invents text that looks and sounds like the language but isn't real.</div></div></div>
+          <div class="pill-row">
+            <button class="pill a0" data-g="lstyle" data-v="authentic" onclick="setPill(this,'lstyle','authentic','a0')">Authentic</button>
+            <button class="pill" data-g="lstyle" data-v="phonetic" onclick="setPill(this,'lstyle','phonetic','a0')">Phonetic</button>
+          </div>
+        </div>
+        <div>
+          <div class="opt-lbl">Proper Nouns <div class="tip-wrap"><span class="tip-icon">?</span><div class="tip-box">Preserve Shape keeps names the same letter count so layout columns stay pixel-perfect.</div></div></div>
+          <div class="pill-row">
+            <button class="pill a0" data-g="nouns" data-v="preserve" onclick="setPill(this,'nouns','preserve','a0')">Preserve shape</button>
+            <button class="pill" data-g="nouns" data-v="replace" onclick="setPill(this,'nouns','replace','a0')">Replace all</button>
+          </div>
+        </div>
+        <div>
+          <div class="opt-lbl">Tone (Semantic only) <div class="tip-wrap"><span class="tip-icon">?</span><div class="tip-box">Tells the AI to match the register of your original — legal stays formal, marketing stays punchy.</div></div></div>
+          <div class="pill-row">
+            <button class="pill a0" data-g="tone" data-v="on" onclick="setPill(this,'tone','on','a0')">Preserve</button>
+            <button class="pill" data-g="tone" data-v="off" onclick="setPill(this,'tone','off','a0')">Ignore</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrl-card">
+      <div class="ctrl-title" style="color:var(--pink);">✦ Semantic Mode</div>
+      <div class="sem-explainer">AI reads your content and generates <strong style="color:var(--text);">contextually accurate</strong> filler — not just random words. Recognizes:</div>
+      <div class="sem-patterns">
+        <span class="sem-pat hi">Date — Event</span>
+        <span class="sem-pat hi">Name, Title</span>
+        <span class="sem-pat hi">• Bullets</span>
+        <span class="sem-pat hi">1. Numbered</span>
+        <span class="sem-pat hi">$currency</span>
+        <span class="sem-pat hi">phone</span>
+        <span class="sem-pat hi">email</span>
+        <span class="sem-pat hi">URLs</span>
+        <span class="sem-pat">Body copy</span>
+        <span class="sem-pat">Headlines</span>
+        <span class="sem-pat">Legal text</span>
+        <span class="sem-pat">ALL CAPS</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">Needs a free API key — <span style="color:var(--accent);cursor:pointer;text-decoration:underline;" onclick="toggleDrawer()">connect above</span> or get one at <a href="https://aistudio.google.com" target="_blank" style="color:var(--accent);text-decoration:none;">aistudio.google.com</a></div>
+    </div>
+
+  </div>
+
+  <div class="mid-row">
+
+    <div class="bc">
+      <div class="panel-hdr">
+        <span class="panel-lbl">Your Text</span>
+        <div class="stats"><span>Words <span class="sv" id="in-w">0</span></span><span>Chars <span class="sv" id="in-c">0</span></span></div>
+      </div>
+      <textarea id="input-ta" placeholder="Paste your real text here...&#10;&#10;Works with any content:&#10;&#10;May 12 — Conference Start&#10;May 13 — Workshops &amp; Panels&#10;&#10;John Smith, Senior Director&#10;Maria Garcia, Chief Technology Officer&#10;&#10;• Bullet point items&#10;• With varying lengths&#10;&#10;Invoice Total: $4,299.00&#10;Contact: (919) 555-0142&#10;&#10;Or any body copy, headlines,&#10;pull quotes, legal text..." oninput="onInput()"></textarea>
+      <div class="gen-bar">
+        <button class="btn-gen" id="gen-btn" onclick="generate()">Generate Filler</button>
+        <span class="status-txt" id="status-txt"></span>
+      </div>
+    </div>
+
+    <div class="bc">
+      <div class="panel-hdr">
+        <span class="panel-lbl">Filler Output <span class="mbadge" id="mbadge" style="display:none"></span></span>
+        <div class="stats"><span>Words <span class="sv" id="out-w">—</span></span><span>Chars <span class="sv" id="out-c">—</span></span></div>
+      </div>
+      <div class="det-bar" id="det-bar"><span class="det-lbl">Detected</span></div>
+      <div class="out-scroll"><div class="out-content empty" id="out-el">Output will appear here.
+Hover any paragraph to regenerate just that section.</div></div>
+      <div class="out-actions">
+        <button class="btn-act" id="copy-btn" onclick="copyPlain()">Copy Text</button>
+        <button class="btn-act" onclick="copyRich()">Copy Rich Text</button>
+        <button class="btn-act" onclick="dlTxt()">Download .txt</button>
+        <button class="btn-act" onclick="clearOut()">Clear</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bot-row">
+
+    <div class="bot-card">
+      <div class="bot-title">Recent Generations</div>
+      <div class="h-list" id="hist-list"><div class="h-empty">No generations yet — your last 5 appear here</div></div>
+    </div>
+
+    <div class="bot-card">
+      <div class="bot-title">About Filler Forge</div>
+      <div class="about-text"><strong>Filler Forge</strong> is a layout-accurate placeholder text generator for designers. Unlike Lorem Ipsum, it preserves your actual word lengths, sentence structure, and punctuation — so your mockup stays pixel-perfect.<br><br>Built for <strong>InDesign, Figma, and web</strong> workflows. Paste in, copy out. No account required.</div>
+    </div>
+
+    <div class="bot-card kofi-card">
+      <div class="kofi-emoji">☕</div>
+      <div class="kofi-title">Like Filler Forge?</div>
+      <div class="kofi-sub">Free forever. If it saves you time, a coffee keeps it going.</div>
+      <a class="kofi-btn" href="https://ko-fi.com/furmfoundry" target="_blank">Support on Ko-fi</a>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const O={mode:'basic',lang:'en',lstyle:'authentic',tone:'on',nouns:'preserve'};
+let apiKey=localStorage.getItem('ff_key')||'';
+let hist=JSON.parse(localStorage.getItem('ff_hist')||'[]');
+let lastOut='',lastParas=[];
+let drawerOpen=false;
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('ff_theme')||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+  document.getElementById('theme-btn').textContent=saved==='dark'?'☀':'☾';
+  if(apiKey){document.getElementById('api-input').value=apiKey;setApiState(true);}
+  else updateSemanticPill();
+  renderHist();
+});
+
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('theme-btn').textContent=next==='dark'?'☀':'☾';
+  localStorage.setItem('ff_theme',next);
+}
+
+function toggleDrawer(){
+  drawerOpen=!drawerOpen;
+  document.getElementById('api-drawer').classList.toggle('open',drawerOpen);
+  if(drawerOpen)setTimeout(()=>document.getElementById('api-input').focus(),60);
+}
+
+function saveKey(){
+  const v=document.getElementById('api-input').value.trim();
+  if(!v)return;
+  apiKey=v;localStorage.setItem('ff_key',v);setApiState(true);
+  if(drawerOpen)toggleDrawer();
+}
+
+function clearKey(){
+  apiKey='';localStorage.removeItem('ff_key');
+  document.getElementById('api-input').value='';setApiState(false);
+  if(O.mode==='semantic'){O.mode='basic';document.querySelectorAll('[data-g="mode"]').forEach(b=>b.classList.remove('a0','a1','a2'));document.querySelector('[data-g="mode"][data-v="basic"]').classList.add('a0');}
+}
+
+function setApiState(on){
+  document.getElementById('api-dot').className='api-dot'+(on?' on':'');
+  document.getElementById('api-status-txt').textContent=on?'API Connected':'API Key';
+  updateSemanticPill();
+}
+
+function updateSemanticPill(){
+  const pill=document.getElementById('pill-semantic');
+  const nudge=document.getElementById('unlock-nudge');
+  if(apiKey){pill.classList.remove('locked');nudge.classList.remove('on');}
+  else{pill.classList.add('locked');nudge.classList.add('on');}
+}
+
+function resetPills(g){document.querySelectorAll(`[data-g="${g}"]`).forEach(b=>b.classList.remove('a0','a1','a2'));}
+function setPill(el,g,v,cls){O[g]=v;resetPills(g);el.classList.add(cls);}
+function setPillSemantic(el){if(!apiKey){document.getElementById('unlock-nudge').classList.add('on');if(!drawerOpen)toggleDrawer();return;}setPill(el,'mode','semantic','a2');}
+
+function onInput(){
+  const t=document.getElementById('input-ta').value;
+  document.getElementById('in-w').textContent=t.trim()?t.trim().split(/\s+/).length:0;
+  document.getElementById('in-c').textContent=t.length;
+  checkPII(t);
+}
+
+const PII_CHECKS=[
+  {name:'email addresses',re:/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi},
+  {name:'phone numbers',re:/\b\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b/g},
+  {name:'SSNs',re:/\b\d{3}-\d{2}-\d{4}\b/g},
+  {name:'credit card numbers',re:/\b\d{4}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b/g},
+];
+function checkPII(t){
+  const found=PII_CHECKS.filter(p=>p.re.test(t)).map(p=>p.name);
+  const bar=document.getElementById('pii-bar');
+  if(found.length){document.getElementById('pii-txt').textContent=`Possible personal data: ${found.join(', ')} — review before generating.`;bar.classList.add('on');}
+  else bar.classList.remove('on');
+}
+
+// WORD BANKS
+const AUTH={
+  en:{s:['the','of','and','a','to','in','is','it','that','was','for','on','are','with','as','at','be','this','from','or','an','but','not','all','were','when','we','can','who','had','if','will','each','how','up','out','them','many','some','so','these','would','into','has','more','two','like','could','time','no','than','been','its','now'],m:['about','after','again','between','because','before','during','every','found','given','going','group','having','large','later','learn','leave','light','might','never','often','other','place','point','quite','right','round','should','since','small','sound','still','study','their','think','those','three','under','until','using','where','which','while','world','write','years','young'],l:['another','because','children','complete','continue','different','education','example','experience','following','important','including','knowledge','language','learning','national','necessary','particular','personal','physical','political','possible','problems','question','remember','research','science','sometimes','something','students','together','understand','university','community','government','information']},
+  es:{s:['el','la','los','las','un','una','de','en','y','que','es','se','no','por','con','para','su','al','del','lo','más','ya','son','fue','pero','como','sus'],m:['también','porque','después','cuando','donde','siempre','nunca','dentro','fuera','durante','aunque','todavía','además','primero','ciudad','tiempo','trabajo','familia','persona'],l:['importante','diferentes','necesario','internacional','universidad','información','comunicación','desarrollo','organización','particular','directamente','situación','experiencia']},
+  pt:{s:['o','a','os','as','um','uma','de','em','e','que','é','se','não','por','com','para','seu','ao','do','da','mais','já','são','foi','mas','como','até'],m:['também','porque','depois','quando','onde','sempre','nunca','dentro','fora','durante','embora','ainda','além','primeiro','cidade','tempo','trabalho','família','pessoa'],l:['importante','diferentes','necessário','internacional','universidade','informação','comunicação','desenvolvimento','organização','particular','diretamente','situação','experiência']},
+  fr:{s:['le','la','les','un','une','de','en','et','que','est','se','ne','par','avec','pour','sur','plus','mais','ou','si','leur','dans'],m:['parce','quand','toujours','jamais','encore','après','avant','pendant','souvent','parfois','vraiment','plusieurs','important'],l:['important','différents','nécessaire','international','université','information','communication','développement','organisation','particulier','directement','situation','expérience']},
+  de:{s:['der','die','das','ein','eine','und','in','ist','es','zu','an','auf','für','mit','als','dem','den','des','von','sich','am','im'],m:['weil','wenn','immer','niemals','noch','nach','vor','während','oft','manchmal','wirklich','jedoch','einige','mehrere'],l:['wichtige','verschiedene','notwendig','international','Universität','Information','Kommunikation','Entwicklung','Organisation','besondere','direkt','Situation','Erfahrung']},
+  ar:{s:['في','من','إلى','على','عن','مع','هذا','هذه','التي','الذي','كان','لكن','أو','و','لا','قد','ما','أن'],m:['الذين','التعليم','المعلومات','الجديدة','الكبيرة','الأساسية','المهمة','المختلفة','الوطنية','الدولية'],l:['المعلومات','الاجتماعية','الاقتصادية','الديمقراطية','المؤسسات','الاستثمارات','التكنولوجيا']},
+  // Asian: 'units' array — real words used as atomic replacement units
+  ko:{units:['사람','시간','우리','세계','국가','문화','사회','경제','기술','환경','교육','생활','정치','역사','과학','예술','음악','자연','언어','마음','생각','이야기','방법','결과','문제','해결','계획','목표','성공','행복','미래','현재','변화','발전','연구','분석','내용','정보','데이터','시스템','서비스','제품','프로젝트','팀원','관리','전략','목록','작업','설계']},
+  ja:{units:['人','時間','世界','国','文化','社会','経済','技術','環境','教育','生活','政治','歴史','科学','芸術','音楽','自然','言語','心','考え','方法','結果','問題','解決','計画','目標','成功','未来','現在','変化','発展','研究','分析','情報','データ','システム','サービス','製品','プロジェクト','管理','戦略','内容','作業','機能','設計','開発','実装','評価','改善']},
+  zh:{units:['人','时间','世界','国家','文化','社会','经济','技术','环境','教育','生活','政治','历史','科学','艺术','音乐','自然','语言','心情','想法','方法','结果','问题','解决','计划','目标','成功','未来','现在','变化','发展','研究','分析','信息','数据','系统','服务','产品','项目','管理','战略','内容','工作','功能','设计','开发','实现','评估','改进','创新']}
+};
+
+const PHON={
+  en:{s:['blorf','zim','krux','pev','wex','dax','fon','tib','mox','zel'],m:['blorfex','zimdrak','kruxial','pevvorn','wexitar','daxtron'],l:['blorfeximal','zimdrakular','kruxialvorn','wexitarblorf']},
+  es:{s:['elo','laz','dero','miso','felo','caro'],m:['elomiso','lazdero','derofelo','misobaro'],l:['elomisodero','lazderofelo','derofelmiso']},
+  pt:{s:['ção','los','dez','mas','fez','vez'],m:['elomiso','lazdezo','derofelo'],l:['elomisodero','lazderofelo']},
+  fr:{s:['blo','zim','pev','dax'],m:['blorfex','zimette','pevvorne'],l:['blorfeximal','zimettevorn']},
+  de:{s:['borf','zem','prux','fev'],m:['borfexen','zemdraken','pruxialen'],l:['borfeximalen','zemdrakulen']},
+  ar:{s:['في','من','إلى','على'],m:['الذين','التعليم'],l:['المعلومات','الاجتماعية']},
+  // Phonetic Asian: plausible-looking invented character combos
+  ko:{units:['바라','카다','마파','나사','타하','자차','가나','다라','마바','사아','라카','파나','타사','하가','바나','카라','마사','나타','자파','가다','라나','파다','타카','하나','바사']},
+  ja:{units:['バラ','カダ','マパ','ナサ','タハ','ジャ','ガナ','ダラ','マバ','サア','ラカ','パナ','タサ','ハガ','バナ','カラ','マサ','ナタ','ジャパ','ガダ','ラナ','パダ','タカ','ハナ','バサ']},
+  zh:{units:['巴拉','卡达','马法','那帕','沙塔','加那','达拉','马巴','萨啊','拉卡','帕那','塔萨','哈嘎','巴那','卡拉','马萨','那塔','扎帕','嘎达','瓦拉','拉那','帕达','塔卡','哈那','巴萨']}
+};
+
+const RTL_LANGS=['ar'];
+const ASIAN_LANGS=['ko','ja','zh'];
+
+function getBank(){return(O.lstyle==='phonetic'?PHON:AUTH)[O.lang]||AUTH.en;}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pickUnit(bank){const arr=bank.units||bank.m||[];return arr[Math.floor(Math.random()*arr.length)]||'';}
+function pickBySize(sz){const b=getBank();if(b.units)return pickUnit(b);const arr=b[sz]||b.m||[];return arr[Math.floor(Math.random()*arr.length)]||'lorem';}
+function wfl(len){return len<=3?pickBySize('s'):len<=7?pickBySize('m'):pickBySize('l');}
+
+// Asian-aware replacement: respects character boundaries
+function replaceAsian(text){
+  const bank=getBank();
+  return text.split('\n').map(line=>{
+    if(!line.trim())return line;
+    // tokenize: preserve spaces/punctuation/numbers, replace letter groups
+    const tokens=[];
+    let i=0;
+    const chars=[...line]; // unicode-safe split
+    while(i<chars.length){
+      const c=chars[i];
+      if(/[\s\p{P}\p{N}]/u.test(c)){tokens.push(c);i++;}
+      else{
+        // collect a run of non-punct non-space chars
+        let run='';
+        while(i<chars.length&&!/[\s\p{P}]/u.test(chars[i])){run+=chars[i];i++;}
+        // replace run with proportional number of units
+        const runChars=[...run];
+        let out='',j=0;
+        while(j<runChars.length){
+          const unit=pickUnit(bank);
+          const unitChars=[...unit];
+          out+=unitChars.slice(0,Math.max(1,Math.min(unitChars.length,runChars.length-j))).join('');
+          j+=Math.max(1,Math.min(unitChars.length,runChars.length-j));
+        }
+        tokens.push(out);
+      }
+    }
+    return tokens.join('');
+  }).join('\n');
+}
+
+const SKIP=new Set(['The','A','An','In','On','At','To','Of','For','And','But','Or','I','It','He','She','We','They','January','February','March','April','May','June','July','August','September','October','November','December','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']);
+function isProper(w){return/^[A-Z][a-z]{1,}$/.test(w)&&!SKIP.has(w);}
+function fakeProper(w){
+  const len=w.replace(/[^a-zA-Z]/g,'').length;
+  const all=[...(AUTH.en.s||[]),...(AUTH.en.m||[]),...(AUTH.en.l||[])];
+  const cands=all.filter(x=>Math.abs(x.length-len)<=2);
+  const p=cands.length?cands[rnd(0,cands.length-1)]:'lorem';
+  return p.charAt(0).toUpperCase()+p.slice(1);
+}
+
+function replaceWords(text){
+  if(ASIAN_LANGS.includes(O.lang))return replaceAsian(text);
+  return text.split(/(\s+)/).map(tok=>{
+    if(/^\s+$/.test(tok))return tok;
+    const m=tok.match(/^([^a-zA-Z\u00C0-\u024F]*)([a-zA-Z\u00C0-\u024F]+)([^a-zA-Z\u00C0-\u024F]*)$/);
+    if(!m)return tok;
+    const[,pre,word,post]=m;
+    if(O.nouns==='preserve'&&isProper(word))return pre+fakeProper(word)+post;
+    const allCaps=word===word.toUpperCase()&&word.length>1;
+    const titleCase=word[0]===word[0].toUpperCase()&&word.length>1;
+    let rep=wfl(word.length);
+    if(allCaps)rep=rep.toUpperCase();
+    else if(titleCase)rep=rep.charAt(0).toUpperCase()+rep.slice(1).toLowerCase();
+    return pre+rep+post;
+  }).join('');
+}
+
+// LOCAL SEMANTIC
+const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const EV=['Opening Reception','Workshop Session','Keynote Address','Panel Discussion','Networking Lunch','Closing Ceremony','Awards Presentation','Breakout Session','Registration Open','Plenary Session','Industry Forum','Demo Showcase'];
+const FN=['James','Maria','David','Sarah','Michael','Emma','Robert','Lisa','William','Karen','Daniel','Patricia'];
+const LN=['Johnson','Martinez','Williams','Brown','Davis','Wilson','Anderson','Thomas','Jackson','White','Harris','Clark'];
+const TI=['Director','Senior Manager','VP of Operations','Chief Editor','Lead Designer','Project Manager','Associate Director','Head of Research','Principal Engineer','Creative Director'];
+const g={
+  date:()=>MO[rnd(0,11)]+' '+rnd(1,28),
+  event:()=>EV[rnd(0,EV.length-1)],
+  name:()=>FN[rnd(0,FN.length-1)]+' '+LN[rnd(0,LN.length-1)],
+  title:()=>TI[rnd(0,TI.length-1)],
+  cur:()=>'$'+(rnd(1,99)*100).toLocaleString()+'.00',
+  phone:()=>`(${rnd(200,999)}) ${rnd(200,999)}-${rnd(1000,9999)}`,
+  email:()=>pickBySize('m')+'@'+pickBySize('m')+'.com',
+  url:()=>'https://www.'+pickBySize('m')+'.com',
+};
+
+function localSemantic(text){
+  return text.split('\n').map(line=>{
+    if(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}(?:,? \d{4})?\s*[-–—:]\s*.+$/i.test(line))return g.date()+' — '+g.event();
+    if(/^[A-Z][a-z]+ [A-Z][a-z]+,\s*[A-Z]/.test(line))return g.name()+', '+g.title();
+    const nm=line.match(/^(\d+[\.\)])\s+(.+)$/);if(nm)return nm[1]+' '+replaceWords(nm[2]);
+    const bm=line.match(/^([-•*◦▸])\s+(.+)$/);if(bm)return bm[1]+' '+replaceWords(bm[2]);
+    let o=line;
+    o=o.replace(/\$[\d,]+\.?\d*/g,g.cur);
+    o=o.replace(/\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/g,g.phone);
+    o=o.replace(/[\w.+-]+@[\w-]+\.[a-z]{2,}/gi,g.email);
+    o=o.replace(/https?:\/\/\S+/g,g.url);
+    return replaceWords(o);
+  }).join('\n');
+}
+
+async function callGemini(text){
+  const langs={en:'English',es:'Spanish',pt:'Portuguese',ko:'Korean',ja:'Japanese',ar:'Arabic',fr:'French',de:'German',zh:'Chinese'};
+  const tl=langs[O.lang]||'English';
+  const styleDesc=O.lstyle==='phonetic'?`Generate text that LOOKS and SOUNDS like ${tl} phonetically but is invented nonsense.`:`Use real ${tl} words as filler.`;
+  const toneDesc=O.tone==='on'?'Match the register/tone of the original.':'';
+  const nounsDesc=O.nouns==='preserve'?'Replace proper nouns with same-length invented names with same capitalization.':'Replace all proper nouns freely.';
+  const prompt=`You are a layout placeholder text generator for professional designers.\n\nReplace ALL content with filler text that:\n1. Preserves EXACTLY the same line breaks, blank lines, punctuation positions, and paragraph structure\n2. Matches word count and approximate character count per line\n3. Intelligently handles: dates+events, name+title pairs, bullet/numbered lists, currencies, phones, emails, URLs, headings, body copy\n4. ${styleDesc}\n5. ${toneDesc}\n6. ${nounsDesc}\n7. Output ONLY the filler — no explanation, no preamble, no markdown\n\nInput:\n${text}`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.85,maxOutputTokens:4096}})});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Gemini error');}
+  const d=await res.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+
+const DET=[
+  {name:'Date: Event',re:/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2}/im},
+  {name:'Name: Title',re:/^[A-Z][a-z]+ [A-Z][a-z]+,\s*[A-Z]/m},
+  {name:'Currency',re:/\$[\d,]+/},
+  {name:'Phone',re:/\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}/},
+  {name:'Email',re:/[\w.+-]+@[\w-]+\.[a-z]{2,}/i},
+  {name:'URL',re:/https?:\/\//},
+  {name:'Bullets',re:/^[-•*◦▸]\s/m},
+  {name:'Numbered list',re:/^\d+[\.\)]\s/m},
+  {name:'ALL CAPS',re:/\b[A-Z]{3,}\b/},
+];
+function detectPats(t){return DET.filter(p=>p.re.test(t)).map(p=>p.name);}
+
+function addHist(inp,out,mode){
+  hist.unshift({inp:inp.slice(0,55)+'…',out,mode,ts:Date.now()});
+  if(hist.length>5)hist.pop();
+  localStorage.setItem('ff_hist',JSON.stringify(hist));
+  renderHist();
+}
+
+function renderHist(){
+  const el=document.getElementById('hist-list');
+  if(!hist.length){el.innerHTML='<div class="h-empty">No generations yet — your last 5 appear here</div>';return;}
+  el.innerHTML=hist.map((h,i)=>`<div class="h-item" onclick="loadHist(${i})"><div class="h-meta"><span>${h.mode}</span><span>${new Date(h.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span></div>${h.inp}</div>`).join('');
+}
+function loadHist(i){if(hist[i])renderOut(hist[i].out,hist[i].mode);}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function renderOut(text,mode){
+  lastOut=text;
+  const el=document.getElementById('out-el');
+  const rtl=RTL_LANGS.includes(O.lang);
+  lastParas=text.split('\n');
+  el.className='out-content fade-up'+(rtl?' out-rtl':'');
+  el.innerHTML=lastParas.map((p,i)=>{
+    if(!p.trim())return`<div style="height:1.9em"></div>`;
+    return`<div class="out-para" data-i="${i}">${esc(p)}<button class="regen-btn" onclick="regenPara(${i})">↺ regen</button></div>`;
+  }).join('');
+  document.getElementById('out-w').textContent=text.trim().split(/\s+/).length;
+  document.getElementById('out-c').textContent=text.length;
+  const badge=document.getElementById('mbadge');
+  badge.style.display='inline';
+  const bmap={basic:['Basic','mb0'],structure:['Structure','mb1'],semantic:['Semantic','mb2']};
+  const[label,cls]=bmap[mode]||bmap.basic;
+  badge.textContent=label;badge.className='mbadge '+cls;
+}
+
+async function regenPara(i){
+  const para=lastParas[i];if(!para)return;
+  const el=document.querySelector(`[data-i="${i}"]`);if(!el)return;
+  el.style.opacity='0.3';
+  let np;
+  try{if(O.mode==='semantic'&&apiKey)np=(await callGemini(para)).trim();else if(O.mode==='semantic')np=localSemantic(para);else np=replaceWords(para);}
+  catch(e){np=replaceWords(para);}
+  lastParas[i]=np;lastOut=lastParas.join('\n');
+  el.innerHTML=esc(np)+`<button class="regen-btn" onclick="regenPara(${i})">↺ regen</button>`;
+  el.style.opacity='1';
+  document.getElementById('out-w').textContent=lastOut.trim().split(/\s+/).length;
+  document.getElementById('out-c').textContent=lastOut.length;
+}
+
+async function generate(){
+  const inp=document.getElementById('input-ta').value.trim();
+  if(!inp)return;
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;
+  if(O.mode==='semantic'){
+    const dets=detectPats(inp);
+    const bar=document.getElementById('det-bar');
+    bar.innerHTML='<span class="det-lbl">Detected</span>'+(dets.length?dets.map(d=>`<span class="dtag">${d}</span>`).join(''):'<span style="font-size:10px;color:var(--muted);font-style:italic">Standard body copy</span>');
+    bar.classList.add('on');
+  }else{document.getElementById('det-bar').classList.remove('on');}
+  let result;
+  if(O.mode==='semantic'&&apiKey){
+    setStatus('<span class="spin"></span>Gemini thinking...');
+    try{result=await callGemini(inp);}
+    catch(e){setStatus('API error — using local fallback');result=localSemantic(inp);document.getElementById('api-dot').className='api-dot err';}
+  }else if(O.mode==='semantic'){setStatus('');await delay(40);result=localSemantic(inp);}
+  else{setStatus('');await delay(30);result=replaceWords(inp);}
+  result=result.trim();
+  renderOut(result,O.mode);
+  addHist(inp,result,O.mode);
+  setStatus('');
+  btn.disabled=false;
+}
+
+function setStatus(h){document.getElementById('status-txt').innerHTML=h;}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function copyPlain(){
+  if(!lastOut)return;
+  navigator.clipboard.writeText(lastOut).then(()=>{
+    const b=document.getElementById('copy-btn');
+    b.textContent='Copied!';b.classList.add('ok');
+    setTimeout(()=>{b.textContent='Copy Text';b.classList.remove('ok');},1500);
+  });
+}
+function copyRich(){
+  if(!lastOut)return;
+  const html=lastOut.split('\n').map(l=>`<p>${esc(l)}</p>`).join('');
+  navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([lastOut],{type:'text/plain'})})]).catch(()=>copyPlain());
+}
+function dlTxt(){
+  if(!lastOut)return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lastOut],{type:'text/plain'}));
+  a.download='filler-forge.txt';a.click();
+}
+function clearOut(){
+  lastOut='';lastParas=[];
+  const el=document.getElementById('out-el');
+  el.className='out-content empty';
+  el.textContent='Output will appear here.\nHover any paragraph to regenerate just that section.';
+  document.getElementById('out-w').textContent='—';
+  document.getElementById('out-c').textContent='—';
+  document.getElementById('mbadge').style.display='none';
+  document.getElementById('det-bar').classList.remove('on');
+}
+</script>
+</body>
+</html>
