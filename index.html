@@ -326,7 +326,7 @@ textarea::placeholder{color:var(--muted);font-style:italic;line-height:1.9;}
         <button class="tmpl-btn" onclick="genTmpl('ingredients')">Ingredients</button>
         <button class="tmpl-btn" onclick="genTmpl('names')">Names</button>
         <button class="tmpl-btn" onclick="genTmpl('dates')">Dates</button>
-        <select id="tmpl-date-fmt" class="tmpl-sel" title="Date Format">
+        <select id="tmpl-date-fmt" class="tmpl-sel" title="Date Format" style="display:none;" onchange="genTmpl('dates')">
           <option value="us">MM/DD/YYYY</option>
           <option value="eu">DD/MM/YYYY</option>
           <option value="long">Month DD, YYYY</option>
@@ -595,6 +595,9 @@ function fakeTitleLang(){
 }
 
 function genTmpl(type){
+  const dateSel=document.getElementById('tmpl-date-fmt');
+  if(type==='dates') dateSel.style.display='inline-block';
+  else dateSel.style.display='none';
   const n=parseInt(document.getElementById('tmpl-n').value)||5;
   let lines=[];
   for(let i=0;i<n;i++){
