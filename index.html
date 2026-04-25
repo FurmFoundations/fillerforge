@@ -115,6 +115,14 @@ header{padding:16px 20px;display:flex;align-items:center;justify-content:space-b
 .sem-pat{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--card2);border:1px solid var(--border);color:var(--text2);font-family:'DM Mono',monospace;}
 .sem-pat.hi{background:var(--pink-dim);border-color:var(--pink);color:var(--pink);}
 
+/* TEMPLATES */
+.tmpl-bar{padding:8px 20px;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0;}
+.tmpl-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-family:'Syne',sans-serif;font-weight:700;}
+.tmpl-num{width:38px;background:var(--card3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:3px 5px;outline:none;}
+.tmpl-sel{background:var(--card3);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:'DM Mono',monospace;font-size:10px;padding:2px;outline:none;cursor:pointer;}
+.tmpl-btn{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border:1px solid var(--border2);background:var(--card3);color:var(--text2);border-radius:6px;cursor:pointer;transition:all .12s;}
+.tmpl-btn:hover{border-color:var(--accent);color:var(--accent);}
+
 /* MID ROW */
 .mid-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:400px;}
 
@@ -307,6 +315,23 @@ textarea::placeholder{color:var(--muted);font-style:italic;line-height:1.9;}
       <div class="panel-hdr">
         <span class="panel-lbl">Your Text</span>
         <div class="stats"><span>Words <span class="sv" id="in-w">0</span></span><span>Chars <span class="sv" id="in-c">0</span></span></div>
+      </div>
+      <div class="tmpl-bar">
+        <span class="tmpl-lbl">Quick:</span>
+        <input type="number" id="tmpl-n" value="5" min="1" max="50" class="tmpl-num" title="Amount">
+        <button class="tmpl-btn" onclick="genTmpl('agenda')">Agenda</button>
+        <button class="tmpl-btn" onclick="genTmpl('pricing')">Pricing</button>
+        <button class="tmpl-btn" onclick="genTmpl('contacts')">Contacts</button>
+        <button class="tmpl-btn" onclick="genTmpl('paragraphs')">Paragraphs</button>
+        <button class="tmpl-btn" onclick="genTmpl('ingredients')">Ingredients</button>
+        <button class="tmpl-btn" onclick="genTmpl('names')">Names</button>
+        <button class="tmpl-btn" onclick="genTmpl('dates')">Dates</button>
+        <select id="tmpl-date-fmt" class="tmpl-sel" title="Date Format">
+          <option value="us">MM/DD/YYYY</option>
+          <option value="eu">DD/MM/YYYY</option>
+          <option value="long">Month DD, YYYY</option>
+          <option value="iso">YYYY-MM-DD</option>
+        </select>
       </div>
       <textarea id="input-ta" placeholder="Paste your real text here...&#10;&#10;Works with any content:&#10;&#10;May 12 — Conference Start&#10;May 13 — Workshops &amp; Panels&#10;&#10;John Smith, Senior Director&#10;Maria Garcia, Chief Technology Officer&#10;&#10;• Bullet point items&#10;• With varying lengths&#10;&#10;Invoice Total: $4,299.00&#10;Contact: (919) 555-0142&#10;&#10;Or any body copy, headlines,&#10;pull quotes, legal text..." oninput="onInput()"></textarea>
       <div class="gen-bar">
@@ -547,6 +572,68 @@ const g={
   email:()=>pickBySize('m')+'@'+pickBySize('m')+'.com',
   url:()=>'https://www.'+pickBySize('m')+'.com',
 };
+
+function fakeNameLang(){
+  if(O.lang==='en') return FN[rnd(0,FN.length-1)]+' '+LN[rnd(0,LN.length-1)];
+  const b=getBank(); let f=pickUnit(b); let l=pickUnit(b);
+  if(!ASIAN_LANGS.includes(O.lang)){
+    f=f.charAt(0).toUpperCase()+f.slice(1);
+    l=l.charAt(0).toUpperCase()+l.slice(1);
+    return f+' '+l;
+  }
+  return f+l;
+}
+
+function fakeTitleLang(){
+  const b=getBank(); let w1=pickUnit(b); let w2=pickUnit(b);
+  if(!ASIAN_LANGS.includes(O.lang)){
+    w1=w1.charAt(0).toUpperCase()+w1.slice(1);
+    w2=w2.charAt(0).toUpperCase()+w2.slice(1);
+    return w1+' '+w2;
+  }
+  return w1+w2;
+}
+
+function genTmpl(type){
+  const n=parseInt(document.getElementById('tmpl-n').value)||5;
+  let lines=[];
+  for(let i=0;i<n;i++){
+    if(type==='agenda'){
+      const h=String(rnd(8,16)).padStart(2,'0');
+      const m=['00','15','30','45'][rnd(0,3)];
+      lines.push(`${h}:${m} — ${fakeTitleLang()}`);
+    }else if(type==='pricing'){
+      lines.push(`${fakeTitleLang()} ........... $${rnd(10,999)}.${['00','99','50'][rnd(0,2)]}`);
+    }else if(type==='contacts'){
+      const role = O.lang==='en'?TI[rnd(0,TI.length-1)]:fakeTitleLang();
+      lines.push(`${fakeNameLang()}, ${role} | ${fakeNameLang().split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g,'')}@${pickBySize('m')}.com`);
+    }else if(type==='paragraphs'){
+      let p=[];
+      for(let j=0;j<rnd(20,40);j++) p.push(wfl(rnd(3,8)));
+      p[0]=p[0].charAt(0).toUpperCase()+p[0].slice(1);
+      lines.push(p.join(' ')+'.');
+    }else if(type==='dates'){
+      const fmt=document.getElementById('tmpl-date-fmt').value;
+      const mm=String(rnd(1,12)).padStart(2,'0');
+      const dd=String(rnd(1,28)).padStart(2,'0');
+      const yyyy=rnd(2020,2030);
+      const mStr=MO[parseInt(mm)-1];
+      if(fmt==='us') lines.push(`${mm}/${dd}/${yyyy}`);
+      else if(fmt==='eu') lines.push(`${dd}/${mm}/${yyyy}`);
+      else if(fmt==='long') lines.push(`${mStr} ${parseInt(dd)}, ${yyyy}`);
+      else if(fmt==='iso') lines.push(`${yyyy}-${mm}-${dd}`);
+    }else if(type==='names'){
+      lines.push(fakeNameLang());
+    }else if(type==='ingredients'){
+      const msrs=['1 cup','2 tbsp','1/2 tsp','3 oz','100g','1 pinch'];
+      lines.push(`• ${msrs[rnd(0,msrs.length-1)]} ${wfl(rnd(4,8))}`);
+    }
+  }
+  const ta=document.getElementById('input-ta');
+  ta.value=lines.join(type==='paragraphs'?'\n\n':'\n');
+  onInput();
+  generate();
+}
 
 function localSemantic(text){
   return text.split('\n').map(line=>{
